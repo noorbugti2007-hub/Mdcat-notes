@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MDCAT Notes</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; }
+        .login-btn { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to MDCAT Notes</h1>
+    <p>This content is protected. Only admin can access notes.</p>
+    <button class="login-btn" onclick="showAdminLogin()">Admin Login</button>
+    
+    <div id="loginForm" style="display:none; margin-top: 20px;">
+        <input type="password" id="password" placeholder="Enter Admin Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <script>
+        function showAdminLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+        }
+        
+        function login() {
+            const password = document.getElementById('password').value;
+            if(password === 'admin123') {
+                localStorage.setItem('adminLoggedIn', 'true');
+                window.location.href = 'admin.html';
+            } else {
+                alert('Wrong password!');
+            }
+        }
+    </script>
+</body>
+</html>
