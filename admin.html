@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel - MDCAT Notes</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .note-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .logout-btn { padding: 8px 15px; background: #dc3545; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel - MDCAT Notes</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    
+    <div class="note-section">
+        <h3>Upload Notes & Files</h3>
+        <input type="file" id="fileUpload" multiple>
+        <button onclick="uploadFiles()">Upload Files</button>
+        <p><strong>Note:</strong> For full file upload functionality, you need backend server.</p>
+        <p>For now, you can use Google Drive links in your notes.</p>
+    </div>
+    
+    <div class="note-section">
+        <h3>Your Notes Section</h3>
+        <p>Add your MDCAT notes links here:</p>
+        <div>
+            <a href="#">Biology Notes PDF</a><br>
+            <a href="#">Chemistry Notes PDF</a><br>
+            <a href="#">Physics Notes PDF</a>
+        </div>
+    </div>
+
+    <script>
+        // Check if admin is logged in
+        if(!localStorage.getItem('adminLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminLoggedIn');
+            window.location.href = 'index.html';
+        }
+        
+        function uploadFiles() {
+            alert('For full file upload, upgrade to paid hosting later.');
+        }
+    </script>
+</body>
+</html>
