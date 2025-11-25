@@ -1,34 +1,194 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MDCAT Notes</title>
+    <title>MDCAT Notes Portal</title>
     <style>
-        body { font-family: Arial; text-align: center; padding: 50px; }
-        .login-btn { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tabs { 
+            display: flex; 
+            margin-bottom: 20px; 
+        }
+        .tab { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            border: 1px solid #ddd; 
+            margin-right: 5px;
+        }
+        .tab.active { 
+            background: #007bff; 
+            color: white; 
+        }
+        .form-section { 
+            display: none; 
+        }
+        .form-section.active { 
+            display: block; 
+        }
+        input, button { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 5px;
+        }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+        }
+        button:hover { 
+            background: #0056b3; 
+        }
+        .message { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            display: none;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to MDCAT Notes</h1>
-    <p>This content is protected. Only admin can access notes.</p>
-    <button class="login-btn" onclick="showAdminLogin()">Admin Login</button>
-    
-    <div id="loginForm" style="display:none; margin-top: 20px;">
-        <input type="password" id="password" placeholder="Enter Admin Password">
-        <button onclick="login()">Login</button>
+    <div class="container">
+        <h1>🎓 MDCAT Notes Portal</h1>
+        <p>Access exclusive MDCAT study materials</p>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('student')">Student Login</div>
+            <div class="tab" onclick="showTab('register')">Student Register</div>
+            <div class="tab" onclick="showTab('admin')">Admin Login</div>
+        </div>
+
+        <!-- Student Login -->
+        <div id="student" class="form-section active">
+            <h3>Student Login</h3>
+            <input type="email" id="studentEmail" placeholder="Email">
+            <input type="password" id="studentPassword" placeholder="Password">
+            <button onclick="studentLogin()">Login</button>
+            <div id="studentMessage" class="message"></div>
+        </div>
+
+        <!-- Student Registration -->
+        <div id="register" class="form-section">
+            <h3>Student Registration</h3>
+            <input type="text" id="studentName" placeholder="Full Name">
+            <input type="email" id="regEmail" placeholder="Email">
+            <input type="password" id="regPassword" placeholder="Password (min 6 characters)">
+            <button onclick="studentRegister()">Register</button>
+            <div id="regMessage" class="message"></div>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="admin" class="form-section">
+            <h3>Admin Login</h3>
+            <input type="password" id="adminPassword" placeholder="Admin Password">
+            <button onclick="adminLogin()">Login</button>
+            <div id="adminMessage" class="message"></div>
+        </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
     <script>
-        function showAdminLogin() {
-            document.getElementById('loginForm').style.display = 'block';
+        // Your Firebase Config - PASTE YOUR CONFIG HERE!
+        const firebaseConfig = {
+            apiKey: "AIzaSyDiaB_xqiv5kGPusW71LQb_6XTIDo_kgoE",
+            authDomain: "mdcat-notes-86e0e.firebaseapp.com",
+            projectId: "mdcat-notes-86e0e",
+            storageBucket: "mdcat-notes-86e0e.firebasestorage.app",
+            messagingSenderId: "616541948794",
+            appId: "1:616541948794:web:07799e7537edc37897a4c3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.form-section').forEach(section => section.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
         }
-        
-        function login() {
-            const password = document.getElementById('password').value;
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.style.display = 'block';
+        }
+
+        async function studentRegister() {
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('students').doc(userCredential.user.uid).set({
+                    name: name,
+                    email: email,
+                    createdAt: new Date(),
+                    status: 'pending'
+                });
+                showMessage('regMessage', 'Registration successful! Waiting for admin approval.', 'success');
+            } catch (error) {
+                showMessage('regMessage', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function studentLogin() {
+            const email = document.getElementById('studentEmail').value;
+            const password = document.getElementById('studentPassword').value;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                const user = auth.currentUser;
+                const studentDoc = await db.collection('students').doc(user.uid).get();
+                
+                if (studentDoc.exists && studentDoc.data().status === 'approved') {
+                    window.location.href = 'student-dashboard.html';
+                } else {
+                    showMessage('studentMessage', 'Account pending admin approval.', 'error');
+                    await auth.signOut();
+                }
+            } catch (error) {
+                showMessage('studentMessage', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
             if(password === 'admin123') {
                 localStorage.setItem('adminLoggedIn', 'true');
                 window.location.href = 'admin.html';
             } else {
-                alert('Wrong password!');
+                showMessage('adminMessage', 'Wrong admin password!', 'error');
             }
         }
     </script>
